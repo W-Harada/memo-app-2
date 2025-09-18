@@ -3,6 +3,21 @@ import Plus from "@/components/svgs/PlusSvg.vue";
 import Header from "@/components/Header.vue";
 import Textarea from "@/components/Textarea.vue";
 import MemoButton from "@/components/MemoButton.vue";
+import {ref} from "vue"
+import axios from "axios"
+
+const memo = ref('')
+
+async function store(){
+    const text = memo.value.trim()
+    if (text.length ===0) return;
+    try{
+        await axios.post('http://localhost:48080/api/memos',{text});
+        memo.value="";
+    }catch(error){
+        console.error('error',error)
+    }
+}
 </script>
 <template>
     <div class="min-h-screen bg-orange-50">
@@ -14,8 +29,8 @@ import MemoButton from "@/components/MemoButton.vue";
                     <p class="font-semibold text-lg">新しいメモ</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <Textarea/>
-                    <MemoButton/>
+                    <Textarea v-model="memo"/>
+                    <MemoButton @push="store"/>
                 </div>
             </div>
         </div>
