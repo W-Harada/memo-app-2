@@ -29,8 +29,11 @@ async function store(){
                     <p class="font-semibold text-lg">新しいメモ</p>
                 </div>
                 <div class="flex flex-col items-center">
-                    <Textarea v-model="memo"/>
-                    <MemoButton @push="store"/>
+                    <Textarea v-model="memo"
+                              @keyup.enter.exact.prevent="store"
+                              @keyup.shift.enter="memo += '\n'"/>
+                    <MemoButton @push="store"
+                                :memo="memo"/>
                 </div>
             </div>
         </div>
