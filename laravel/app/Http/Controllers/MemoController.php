@@ -12,4 +12,9 @@ class MemoController extends Controller
             'text' => $request['text'],
         ]);
     }
+
+    public function index(){
+        $memos = Memo::all();
+        return response()->json($memos);
+    }
 }

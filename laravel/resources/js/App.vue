@@ -3,10 +3,13 @@ import Plus from "@/components/svgs/PlusSvg.vue";
 import Header from "@/components/Header.vue";
 import Textarea from "@/components/Textarea.vue";
 import MemoButton from "@/components/MemoButton.vue";
-import {ref} from "vue"
+import MemoCard from "@/components/MemoCard.vue";
+import {ref,onMounted} from "vue"
 import axios from "axios"
+import DocumentSvg from "@/components/svgs/DocumentSvg.vue";
 
 const memo = ref('')
+const memos = ref([])
 
 async function store(){
     const text = memo.value.trim()
@@ -14,10 +17,14 @@ async function store(){
     try{
         await axios.post('http://localhost:48080/api/memos',{text});
         memo.value="";
+        const response = await axios.get("http://localhost:48080/api/memos")
+        memos.value = response.data
     }catch(error){
         console.error('error',error)
     }
 }
+
+onMounted(store)
 </script>
 <template>
     <div class="min-h-screen bg-orange-50">
@@ -35,6 +42,18 @@ async function store(){
                     <MemoButton @push="store"
                                 :memo="memo"/>
                 </div>
+            </div>
+            <div class="flex flex-row justify-between items-center w-1/3">
+                <div class="flex flex-row gap-2 items-center text-lg font-semibold m-2">
+                    <DocumentSvg/>
+                    <p>保存されたメモ</p>
+                </div>
+                <div class="bg-orange-100 text-sm rounded-full p-2">
+                    {{memos.length}}件
+                </div>
+            </div>
+            <div class="w-1/3">
+                <MemoCard v-model="memos"/>
             </div>
         </div>
     </div>
