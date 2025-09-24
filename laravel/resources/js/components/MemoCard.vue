@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Trash from "@/components/svgs/TrashSvg.vue";
-const memos = defineModel<{id:number, text:string, created_at:string}[]>()
-
+import axios from "axios"
+const memos = defineModel<{id:number, text:string, created_at:string}[]>({default: []})
+const props = defineProps<{fetchMemos:() => void}>()
 function formatDate(datetime: string): string {
     const date = new Date(datetime);
     const y = date.getFullYear();
@@ -11,14 +12,24 @@ function formatDate(datetime: string): string {
     const mm = String(date.getMinutes()).padStart(2, '0');
     return `${y}/${m}/${d} ${hh}:${mm}`;
 }
+
+async function deleteMemo(id:number){
+    try{
+        await axios.delete(`http://localhost:48080/api/memos/${id}`)
+        props.fetchMemos()
+    }catch(error){
+        console.error('error',error)
+    }
+}
 </script>
 
 <template>
-<div v-for="memo in memos" :key="memo.id"
+<div v-for="memo in memos.slice().reverse()" :key="memo.id"
      class="w-full border-solid border-2 rounded-lg border-gray-200 bg-white mt-2 mb-4 p-4 pl-6 pr-6 flex flex-col group/memo">
     <div class="text-gray-800 text-lg font-medium flex flex-row justify-between items-center">
         {{memo.text}}
-        <button>
+        <button type="button"
+                @click="deleteMemo(memo.id)">
             <Trash class="text-white group-hover/memo:text-gray-400"/>
         </button>
     </div>
