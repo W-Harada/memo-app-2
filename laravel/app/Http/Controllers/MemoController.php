@@ -17,4 +17,10 @@ class MemoController extends Controller
         $memos = Memo::all();
         return response()->json($memos);
     }
+
+    public function destroy(Request $request){
+        $memo = Memo::find($request['id']);
+        $memo->delete();
+        return response()->json($memo);
+    }
 }

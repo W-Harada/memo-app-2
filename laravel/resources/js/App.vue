@@ -11,12 +11,8 @@ import DocumentSvg from "@/components/svgs/DocumentSvg.vue";
 const memo = ref('')
 const memos = ref([])
 
-async function store(){
-    const text = memo.value.trim()
-    if (text.length ===0) return;
+async function fetchMemos(){
     try{
-        await axios.post('http://localhost:48080/api/memos',{text});
-        memo.value="";
         const response = await axios.get("http://localhost:48080/api/memos")
         memos.value = response.data
     }catch(error){
@@ -24,7 +20,21 @@ async function store(){
     }
 }
 
-onMounted(store)
+async function store(){
+    const text = memo.value.trim()
+    if (text.length ===0) return;
+    try{
+        await axios.post('http://localhost:48080/api/memos',{text});
+        memo.value="";
+        await fetchMemos()
+    }catch(error){
+        console.error('error',error)
+    }
+}
+
+onMounted(() => {
+    fetchMemos()
+})
 </script>
 <template>
     <div class="min-h-screen bg-orange-50">
@@ -53,7 +63,8 @@ onMounted(store)
                 </div>
             </div>
             <div class="w-1/3">
-                <MemoCard v-model="memos"/>
+                <MemoCard v-model="memos"
+                          :fetchMemos="fetchMemos"/>
             </div>
         </div>
     </div>
