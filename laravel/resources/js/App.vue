@@ -10,6 +10,7 @@ import DocumentSvg from "@/components/svgs/DocumentSvg.vue";
 
 const memo = ref('')
 const memos = ref([])
+const isSaving = ref(false)
 
 async function fetchMemos(){
     try{
@@ -21,14 +22,17 @@ async function fetchMemos(){
 }
 
 async function store(){
+    isSaving.value = true
     const text = memo.value.trim()
     if (text.length ===0) return;
     try{
-        await axios.post('http://localhost:48080/api/memos',{text});
-        memo.value="";
+        await axios.post('http://localhost:48080/api/memos',{text})
+        memo.value=""
         await fetchMemos()
     }catch(error){
         console.error('error',error)
+    }finally{
+        isSaving.value = false
     }
 }
 
@@ -47,10 +51,12 @@ onMounted(() => {
                 </div>
                 <div class="flex flex-col items-center">
                     <Textarea v-model="memo"
+                              :disabled="isSaving"
                               @keyup.enter.exact.prevent="store"
                               @keyup.shift.enter="memo += '\n'"/>
                     <MemoButton @push="store"
-                                :memo="memo"/>
+                                :memo="memo"
+                                :disabled="isSaving"/>
                 </div>
             </div>
             <div class="flex flex-row justify-between items-center w-1/3">
