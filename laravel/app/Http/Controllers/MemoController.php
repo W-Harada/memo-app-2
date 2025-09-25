@@ -23,4 +23,9 @@ class MemoController extends Controller
         $memo->delete();
         return response()->json($memo);
     }
+
+    public function edit(Request $request){
+        $memo = Memo::find($request['id']);
+        return response()->json($memo);
+    }
 }
