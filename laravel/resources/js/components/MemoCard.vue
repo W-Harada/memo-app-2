@@ -13,6 +13,7 @@ const showModal = ref(false)
 const deleteId = ref<number | null>(null)
 
 const isUpdating = ref(false)
+const isDeleting = ref(false)
 
 interface Memo {
     id: number;
@@ -40,12 +41,15 @@ function cancelDelete(){
     showModal.value = false
 }
 async function deleteMemo(){
+    isDeleting.value = true
     try{
         await axios.delete(`http://localhost:48080/api/memos/${deleteId.value}`)
         props.fetchMemos()
         cancelDelete()
     }catch(error){
         console.error('error',error)
+    }finally{
+        isDeleting.value = false
     }
 }
 
@@ -104,8 +108,8 @@ async function updateMemo(id: number) {
         <div class="flex flex-col bg-white p-6 rounded-lg w-80">
             <p class="mb-4 text-gray-800 font-medium text-center">本当にこのメモを削除しますか？</p>
             <div class="flex flex-row justify-between gap-4">
-                <button @click="cancelDelete" class="basis-1/2 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">キャンセル</button>
-                <button @click="deleteMemo" class="basis-1/2 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500">削除</button>
+                <button @click="cancelDelete" class="basis-1/2 py-2 bg-gray-300 rounded-lg hover:bg-gray-400" :disabled="isDeleting">キャンセル</button>
+                <button @click="deleteMemo" class="basis-1/2 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500" :disabled="isDeleting">削除</button>
             </div>
         </div>
     </div>
