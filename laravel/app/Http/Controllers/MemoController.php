@@ -11,6 +11,7 @@ class MemoController extends Controller
         Memo::create([
             'text' => $request['text'],
         ]);
+        return response()->json([]);
     }
 
     public function index(){

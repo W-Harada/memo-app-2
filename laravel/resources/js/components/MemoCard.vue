@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import Trash from "@/components/svgs/TrashSvg.vue";
 import Pen from "@/components/svgs/PenSvg.vue";
-import {ref} from "vue";
+import {ref,computed} from "vue";
 import axios from "axios"
 const memos = defineModel<{id:number, text:string, created_at:string}[]>({default: []})
 const props = defineProps<{fetchMemos:() => void}>()
+const keyword = defineModel<string>('keyword')
 
 const editingId = ref<number | null>(null);
 const editText = ref('');
@@ -20,6 +21,15 @@ interface Memo {
     text: string;
     created_at: string;
 }
+
+const filteredMemos = computed(() => {
+    if (!keyword.value) {
+        return memos.value;
+    }
+    return memos.value.filter(memo =>
+        memo.text.toLowerCase().includes((keyword.value ?? "").toLowerCase())
+    );
+});
 
 function formatDate(datetime: string): string {
     const date = new Date(datetime);
@@ -47,7 +57,7 @@ async function deleteMemo(){
         props.fetchMemos()
         cancelDelete()
     }catch(error){
-        console.error('error',error)
+        console.error('削除失敗',error)
     }finally{
         isDeleting.value = false
     }
@@ -71,7 +81,7 @@ async function updateMemo(id: number) {
         if (target) target.text = editText.value;
         cancelEdit();
     } catch (error) {
-        console.error('error',error);
+        console.error('編集失敗',error);
     }finally{
         isUpdating.value = false
     }
@@ -79,8 +89,8 @@ async function updateMemo(id: number) {
 </script>
 
 <template>
-    <div v-for="memo in memos.slice().reverse()" :key="memo.id"
-        class="w-full border-solid border-2 rounded-lg border-gray-200 bg-white mt-2 mb-4 p-4 pl-6 pr-6 flex flex-col group/memo">
+    <div v-for="memo in filteredMemos.slice().reverse()" :key="memo.id"
+        class="w-full border-solid border-2 rounded-lg border-orange-100 shadow-lg bg-white mt-2 mb-4 p-4 pl-6 pr-6 flex flex-col group/memo">
         <div v-if="editingId === memo.id">
             <input v-model="editText" class="border-solid border-2 border-gray-200 rounded-lg w-full text-gray-800 text-lg font-medium px-4 py-2 focus:border-blue-200 focus:outline-none" :disabled="isUpdating"/>
             <div class="flex flex-row gap-2 justify-end mt-2">
