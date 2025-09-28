@@ -3,7 +3,7 @@ import Trash from "@/components/svgs/TrashSvg.vue";
 import Pen from "@/components/svgs/PenSvg.vue";
 import {ref,computed} from "vue";
 import axios from "axios"
-const memos = defineModel<{id:number, text:string, created_at:string}[]>({default: []})
+const memos = defineModel<{id:number, text:string, created_at:string, isPinned?: boolean;}[]>({default: []})
 const props = defineProps<{fetchMemos:() => void}>()
 const keyword = defineModel<string>('keyword')
 
@@ -16,10 +16,15 @@ const deleteId = ref<number | null>(null)
 const isUpdating = ref(false)
 const isDeleting = ref(false)
 
-interface Memo {
-    id: number;
+type Memo ={
+    id:number;
     text: string;
     created_at: string;
+    isPinned?: boolean;
+}
+
+function togglePin(memo:Memo) {
+    memo.isPinned = !memo.isPinned;
 }
 
 const filteredMemos = computed(() => {
@@ -29,6 +34,18 @@ const filteredMemos = computed(() => {
     return memos.value.filter(memo =>
         memo.text.toLowerCase().includes((keyword.value ?? "").toLowerCase())
     );
+});
+
+const sortedMemos = computed(() => {
+    return [...filteredMemos.value].sort((a, b) => {
+        const aPinned = a.isPinned ?? false;
+        const bPinned = b.isPinned ?? false;
+
+        if (aPinned && !bPinned) return 1;
+        if (!aPinned && bPinned) return -1;
+
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 });
 
 function formatDate(datetime: string): string {
@@ -89,29 +106,38 @@ async function updateMemo(id: number) {
 </script>
 
 <template>
-    <div v-for="memo in filteredMemos.slice().reverse()" :key="memo.id"
-        class="w-full border-solid border-2 rounded-lg border-orange-100 shadow-lg bg-white mt-2 mb-4 p-4 pl-6 pr-6 flex flex-col group/memo">
-        <div v-if="editingId === memo.id">
-            <input v-model="editText" class="border-solid border-2 border-gray-200 rounded-lg w-full text-gray-800 text-lg font-medium px-4 py-2 focus:border-blue-200 focus:outline-none" :disabled="isUpdating"/>
-            <div class="flex flex-row gap-2 justify-end mt-2">
-                <button @click="updateMemo(memo.id)" class="bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded-lg" :disabled="isUpdating">保存</button>
-                <button @click="cancelEdit" class="bg-gray-300 hover:bg-gray-400 px-2 py-1 rounded-lg" :disabled="isUpdating">キャンセル</button>
+    <div v-for="memo in sortedMemos.slice().reverse()" :key="memo.id"
+        class="w-full border-solid border-2 rounded-lg border-orange-100 shadow-lg bg-white mt-2 mb-4 py-4 px-6 flex flex-row group/memo">
+        <div class="w-full flex justify-stretch gap-4">
+            <button @click="togglePin(memo)"
+                    class="text-lg flex justify-start"
+                    :class="memo.isPinned ? 'text-yellow-300' : 'text-gray-200'">
+                ★
+            </button>
+            <div class="flex flex-col w-11/12">
+                <div v-if="editingId === memo.id">
+                    <input v-model="editText" class="flex justify-between border-solid border-2 border-gray-200 rounded-lg w-full text-gray-800 text-lg font-medium px-4 py-2 focus:border-blue-200 focus:outline-none" :disabled="isUpdating"/>
+                    <div class="flex flex-row gap-2 justify-end mt-2">
+                        <button @click="updateMemo(memo.id)" class="bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded-lg" :disabled="isUpdating">保存</button>
+                        <button @click="cancelEdit" class="bg-gray-300 hover:bg-gray-400 px-2 py-1 rounded-lg" :disabled="isUpdating">キャンセル</button>
+                    </div>
+                </div>
+                <div v-else
+                     class="text-gray-800 text-lg font-medium flex flex-row justify-between items-center">
+                    {{memo.text}}
+                    <div class="flex flex-row gap-3 items-center">
+                        <button type="button" @click="startEdit(memo)">
+                            <Pen class="text-white group-hover/memo:text-gray-400"/>
+                        </button>
+                        <button type="button" @click="confirmDelete(memo.id)">
+                            <Trash class="text-white group-hover/memo:text-gray-400 h-6 w-6"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-400 pt-2">
+                    {{formatDate(memo.created_at)}}
+                </div>
             </div>
-        </div>
-        <div v-else
-            class="text-gray-800 text-lg font-medium flex flex-row justify-between items-center">
-            {{memo.text}}
-            <div class="flex flex-row gap-3 items-center">
-                <button type="button" @click="startEdit(memo)">
-                    <Pen class="text-white group-hover/memo:text-gray-400"/>
-                </button>
-                <button type="button" @click="confirmDelete(memo.id)">
-                    <Trash class="text-white group-hover/memo:text-gray-400 h-6 w-6"/>
-                </button>
-            </div>
-        </div>
-        <div class="text-xs text-gray-400 pt-2">
-            {{formatDate(memo.created_at)}}
         </div>
     </div>
     <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
