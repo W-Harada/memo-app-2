@@ -44,7 +44,7 @@ const sortedMemos = computed(() => {
         if (aPinned && !bPinned) return 1;
         if (!aPinned && bPinned) return -1;
 
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
 });
 
@@ -110,8 +110,7 @@ async function updateMemo(id: number) {
         class="w-full border-solid border-2 rounded-lg border-orange-100 shadow-lg bg-white mt-2 mb-4 py-4 px-6 flex flex-row group/memo">
         <div class="w-full flex justify-stretch gap-4">
             <button @click="togglePin(memo)"
-                    class="text-lg flex justify-start"
-                    :class="memo.isPinned ? 'text-yellow-300' : 'text-gray-200'">
+                    :class="['text-lg flex justify-start',memo.isPinned ? 'text-yellow-300' : 'text-gray-200']">
                 ★
             </button>
             <div class="flex flex-col w-11/12">
